@@ -4,7 +4,7 @@ const path = require('path');
 module.exports = (env, argv) => {
   let entryPath =
     argv.mode === 'production'
-      ? ['./public/js/main.js']
+      ? ['./dist/js/main.js']
       : ['./src/js/main.js'];
   return {
     target: 'web',
