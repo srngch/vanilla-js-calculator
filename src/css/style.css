@@ -1,0 +1,87 @@
+div {
+	box-sizing: border-box;
+}
+
+#app {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-content: center;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.display {
+	width: 20rem;
+	height: 5rem;
+	margin-bottom: 0.1rem;
+	padding: 0.2rem;
+	background: #4a4a4a;
+	border-radius: 10px;
+	color: white;
+	font-family: monospace;
+	font-size: 4.5rem;
+	text-align: right;
+	line-height: 1;
+}
+
+.display-number {
+	animation: flickerAnimation .2s;
+	animation-timing-function: cubic-bezier(0.46, 0.03, 0.52, 0.96);
+}
+
+@keyframes flickerAnimation {
+  0%   { opacity:1; }
+  30%  { opacity:0; }
+  40% { opacity:1; }
+  100% { opacity:1; }
+}
+
+button {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	flex: 1;
+	display: inline-block;
+	border: 1px solid white;
+	border-radius: 10px;
+	text-align: center;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+button:active {
+	box-shadow: inset 3px 3px 3px rgb(71 71 71 / 25%);
+	border: 1;
+}
+
+.btn-function {
+	font-size: 1.5rem;
+	font-weight: 600;
+	background-color: #bbbbbb;
+}
+
+.btn-operator,
+.btn-result {
+	background-color: #ffd978;
+}
+
+.btn-number,
+.btn-dot,
+.btn-operator,
+.btn-result {
+	font-size: 2.25rem;
+	font-weight: 500;
+}
+
+.btn-number[data-number='0'] {
+	flex-basis: 50%;
+	max-width: 50%;
+}
+
+.controllers-row {
+	display: flex;
+	width: calc(5rem * 4);
+	height: 5rem;
+	justify-content: space-between;
+}
