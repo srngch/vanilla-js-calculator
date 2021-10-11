@@ -3,13 +3,13 @@ import Display from './components/Display.js';
 import Controller from './components/Controller.js';
 
 class App extends Component {
-  setup() {
+	setup() {
 		this.state = {
 			displayedNumber: 0,
-			firstOperand: undefined,
-			secondOperand: undefined,
+			firstOperand: null,
+			secondOperand: null,
 			recentOperand: 0,
-			operator: undefined,
+			operator: null,
 			isDot: false,
 			clearButtonText: 'AC',
 		};
@@ -64,11 +64,16 @@ class App extends Component {
 	}
 
 	setEvent() {
+		const _isInvalidKey = (key) => {
+			const valid = ['Escape', 'Enter', '+', '-', '*', '/', '%', ',', '.'];
+			const isFunctionKey = valid.includes(key);
+			const isNumkey = Number.isInteger(Number(key)) && key !== ' ';
+			return !(isFunctionKey || isNumkey);
+		};
+
 		document.addEventListener('keydown', (e) => {
-			if (e.key === 'Shift' || e.key === ' ') {
-				return;
-			}
-			console.dir(e);
+			if (_isInvalidKey(e.key)) return;
+
 			const {
 				handleClearButton,
 				toggleSignButton,
@@ -78,6 +83,7 @@ class App extends Component {
 				handleOperatorButton,
 				handleResultButton,
 			} = this;
+
 			if (isNaN(e.key)) {
 				const executes = {
 					Escape: handleClearButton.bind(this),
@@ -99,7 +105,6 @@ class App extends Component {
 				executes[e.key](params[e.key]);
 				return;
 			}
-
 			handleNumberButton.bind(this)(Number(e.key));
 		});
 	}
@@ -111,43 +116,30 @@ class App extends Component {
 	}
 
 	handleNumberButton(selectedNumber) {
-		const { firstOperand,secondOperand,  recentOperand, operator, isDot } = this.state;
-		let number;
-		let prevNumber =
-			operator && secondOperand === undefined ? 0 : recentOperand;
+		const { firstOperand, secondOperand, recentOperand, operator, isDot } =
+			this.state;
+		const prevNumber = operator && secondOperand === null ? 0 : recentOperand;
+		console.log(prevNumber);
+		const newDisplayedNumber = isDot
+			? parseFloat(`${prevNumber}.${selectedNumber}`)
+			: parseFloat(`${prevNumber}${selectedNumber}`);
+		if (newDisplayedNumber >= 1000000000) return;
 
-		if (!isDot) {
-			number =
-				prevNumber === 0
-					? selectedNumber
-					: prevNumber * 10 + selectedNumber;
-		} else {
-      const string = prevNumber.toString();
-      const pow = string.indexOf('.') === -1 ? 1 : string.length - string.indexOf('.');
-
-      console.log(prevNumber.toString(), prevNumber, pow);
-      console.log(
-				prevNumber.toString().length,
-				prevNumber.toString().indexOf('.')
-			);
-
-			selectedNumber /= (10 ** pow);
-			number =
-				prevNumber === 0 ? selectedNumber : prevNumber + selectedNumber;
-		}
-
-    this.setState({
-			displayedNumber: number,
-			firstOperand: operator ? firstOperand : number,
-			secondOperand: operator ? number : secondOperand,
-			recentOperand: number,
+		this.setState({
+			displayedNumber: newDisplayedNumber,
+			firstOperand: operator ? firstOperand : newDisplayedNumber,
+			secondOperand: operator ? newDisplayedNumber : secondOperand,
+			recentOperand: newDisplayedNumber,
+			isDot: false,
 			clearButtonText: 'C',
 		});
 	}
 
 	handleDotButton() {
+		const { isDot } = this.state;
+		if (isDot) return;
 		this.setState({
-			displayedNumber: this.state.displayedNumber + '.',
+			displayedNumber: `${this.state.displayedNumber}.`,
 			isDot: true,
 		});
 	}
@@ -166,18 +158,17 @@ class App extends Component {
 
 	handleResultButton() {
 		this.setState({
-			displayedNumber: this._getResult(),
-			firstOperand: this._getResult(),
-			secondOperand: undefined,
-      
+			displayedNumber: this.#getResult(),
+			firstOperand: this.#getResult(),
+			secondOperand: null,
 		});
 	}
 
-	_getResult() {
+	#getResult() {
 		const { firstOperand, secondOperand, recentOperand, operator } = this.state;
 		const first = firstOperand ? firstOperand : 0;
 		const second = secondOperand ? secondOperand : recentOperand;
-		let result = undefined;
+		let result = null;
 
 		switch (operator) {
 			case 'plus':
@@ -201,31 +192,28 @@ class App extends Component {
 
 	// TODO: Add a operation after After getting the results
 	handleClearButton() {
-		const { displayedNumber, firstOperand, secondOperand, operator } =
-			this.state;
-		let newDisplayedNumber = displayedNumber;
-		let newFirstOperand = firstOperand;
-		let newSecondOperand = secondOperand;
-		let newOperator = operator;
+		let newState;
+		const clearSecondOperand = {
+			displayedNumber: 0,
+			secondOperand: null,
+		};
+		const clearOperator = { operator: null };
+		const clearFirstOperand = {
+			displayedNumber: 0,
+			firstOperand: null,
+		};
+		const { firstOperand, secondOperand, operator } = this.state;
 
-		if (secondOperand) {
-			newDisplayedNumber = 0;
-			newSecondOperand = undefined;
-		} else {
-			if (operator) {
-				newOperator = undefined;
-			} else {
-				newDisplayedNumber = 0;
-				newFirstOperand = undefined;
-			}
-		}
+		if (firstOperand && operator && secondOperand)
+			newState = clearSecondOperand;
+		else if (firstOperand && operator && !secondOperand)
+			newState = clearOperator;
+		else if (firstOperand && !operator && !secondOperand)
+			newState = clearFirstOperand;
 
 		this.setState({
-      displayedNumber: newDisplayedNumber,
-			firstOperand: newFirstOperand,
-			secondOperand: newSecondOperand,
+			...newState,
 			recentOperand: 0,
-			operator: newOperator,
 			isDot: false,
 			clearButtonText: 'AC',
 		});
@@ -240,17 +228,22 @@ class App extends Component {
 	}
 
 	handlePercentButton() {
+		let newState;
 		const { displayedNumber, firstOperand, operator } = this.state;
 		if (operator) {
-			this.setState({
+			newState = {
 				displayedNumber: (displayedNumber * firstOperand) / 100,
 				secondOperand: (displayedNumber * displayedNumber) / 100,
-			});
+			};
 		} else {
-			this.setState({
-				displayedNumber: (displayedNumber * 1) / 100,
-			});
+			const newDisplayedNumber = (firstOperand * 1) / 100;
+			newState = {
+				displayedNumber: newDisplayedNumber,
+				firstOperand: newDisplayedNumber,
+				recentOperand: newDisplayedNumber,
+			};
 		}
+		this.setState(newState);
 	}
 }
 
