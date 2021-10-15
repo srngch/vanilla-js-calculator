@@ -9,11 +9,35 @@ const setApp = () => {
 	domApp = document.createElement('div');
 	domApp.id = 'app';
 	domBody.appendChild(domApp);
-	new App(document.querySelector('#app'));
+	return new App(document.querySelector('#app'));
 };
 
-describe('test click: number buttons 1 to 9', () => {
-	const numbers = [1,2,3,4,5,6,7,8,9];
+describe('initial value', () => {
+	let app;
+
+	beforeEach(() => {
+		app = setApp();
+	});
+
+	test('the initial value in display box is 0', () => {
+		const domDisplay = document.querySelector('.display-number');
+		expect(domDisplay.textContent).toBe('0');
+	});
+
+	test('click: just one number button', () => {
+		document.querySelector('.btn-number[data-number="1"]').click();
+
+		const domDisplay = document.querySelector('.display-number');
+		expect(domDisplay.textContent).toBe('1');
+	});
+
+	afterEach(() => {
+		app = null;
+	});
+});
+
+describe('click: number buttons 1 to 9', () => {
+	const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 	beforeAll(() => {
 		setApp();
